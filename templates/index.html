@@ -1,0 +1,1743 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DSA Lab — Interactive Data Structures & Algorithms</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+/* ==========================================================================
+   DESIGN TOKENS & RESET
+   ========================================================================== */
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+:root {
+    --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --font-mono: 'JetBrains Mono', Consolas, "Courier New", monospace;
+
+    /* Color Palette */
+    --bg-app: #f4f6f9;
+    --bg-surface: #ffffff;
+    --bg-subtle: #f8fafc;
+    --bg-dark: #090d16;
+    --bg-sidebar: #0d131f;
+
+    --border: #e2e8f0;
+    --border-strong: #cbd5e1;
+    --border-dark: #1e293b;
+
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --text-muted: #94a3b8;
+    --text-inverse: #f8fafc;
+
+    --accent: #2563eb;
+    --accent-hover: #1d4ed8;
+    --accent-soft: #eff6ff;
+    --accent-border: #bfdbfe;
+
+    --success: #059669;
+    --success-soft: #ecfdf5;
+    --success-border: #a7f3d0;
+
+    --danger: #dc2626;
+    --danger-soft: #fef2f2;
+    --danger-border: #fecaca;
+
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 14px;
+    --shadow-sm: 0 1px 2px 0 rgba(15, 23, 42, 0.05);
+    --shadow-md: 0 4px 12px -2px rgba(15, 23, 42, 0.08);
+
+    --sidebar-w: 260px;
+    --panel-w: 320px;
+}
+
+body {
+    font-family: var(--font-sans);
+    background-color: var(--bg-app);
+    color: var(--text-primary);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* ==========================================================================
+   LAYOUT SHELL
+   ========================================================================== */
+.app-shell {
+    display: grid;
+    grid-template-columns: var(--sidebar-w) minmax(0, 1fr) var(--panel-w);
+    min-height: 100vh;
+}
+
+/* Top mobile bar (hidden on desktop) */
+.mobile-header {
+    display: none;
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    background: var(--bg-sidebar);
+    color: white;
+    padding: 12px 18px;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border-dark);
+}
+
+.mobile-header .brand-title {
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.menu-toggle-btn {
+    background: #1e293b;
+    border: 1px solid #334155;
+    color: #f1f5f9;
+    padding: 6px 12px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+/* ==========================================================================
+   SIDEBAR (NAV)
+   ========================================================================== */
+.sidebar {
+    background-color: var(--bg-sidebar);
+    color: #94a3b8;
+    padding: 24px 16px;
+    border-right: 1px solid var(--border-dark);
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    position: sticky;
+    top: 0;
+    overflow-y: auto;
+}
+
+.brand {
+    padding: 4px 10px 20px;
+    border-bottom: 1px solid #1e293b;
+    margin-bottom: 18px;
+}
+
+.brand-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: #38bdf8;
+    margin-bottom: 6px;
+}
+
+.brand-badge::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    background: #38bdf8;
+    border-radius: 50%;
+    box-shadow: 0 0 8px #38bdf8;
+}
+
+.brand h1 {
+    font-size: 17px;
+    font-weight: 700;
+    color: #f8fafc;
+    letter-spacing: -0.4px;
+}
+
+.nav-group-title {
+    font-size: 10px;
+    font-weight: 700;
+    color: #475569;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    padding: 14px 10px 6px;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 8px 12px;
+    margin-bottom: 2px;
+    border: none;
+    background: transparent;
+    border-radius: var(--radius-sm);
+    color: #cbd5e1;
+    font-size: 13px;
+    font-weight: 500;
+    text-align: left;
+    transition: all 0.15s ease;
+    cursor: pointer;
+}
+
+.nav-item:hover {
+    background: #1e293b;
+    color: #ffffff;
+}
+
+.nav-item.active {
+    background: #1e293b;
+    color: #ffffff;
+    font-weight: 600;
+    box-shadow: inset 3px 0 0 #38bdf8;
+}
+
+.nav-tag {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    opacity: 0.6;
+}
+
+/* ==========================================================================
+   CENTER WORKSPACE
+   ========================================================================== */
+.workspace {
+    padding: 36px 44px;
+    overflow-y: auto;
+    max-width: 980px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+.workspace-header {
+    margin-bottom: 24px;
+}
+
+.meta-breadcrumb {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+}
+
+.meta-breadcrumb span {
+    color: var(--accent);
+}
+
+.topic-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: -0.8px;
+    line-height: 1.2;
+    margin-bottom: 10px;
+}
+
+.topic-description {
+    font-size: 15px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    max-width: 760px;
+}
+
+/* Visual Playground Card */
+.card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 24px;
+    overflow: hidden;
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    background: #ffffff;
+}
+
+.card-title {
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.card-title::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    background: var(--accent);
+    border-radius: 2px;
+}
+
+.card-body {
+    padding: 24px;
+}
+
+/* Blueprint Canvas Area */
+.canvas-wrapper {
+    background-color: #fafbfc;
+    background-image: radial-gradient(#cbd5e1 0.75px, transparent 0.75px);
+    background-size: 18px 18px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 36px 20px;
+    min-height: 180px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    overflow-x: auto;
+}
+
+/* Visualization Items */
+.visual-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.visual-item {
+    background: #ffffff;
+    border: 1.5px solid #cbd5e1;
+    border-radius: var(--radius-md);
+    padding: 12px 16px;
+    min-width: 58px;
+    text-align: center;
+    font-family: var(--font-mono);
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+    box-shadow: 0 2px 4px rgba(15, 23, 42, 0.04);
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.visual-item:hover {
+    transform: translateY(-2px);
+}
+
+.visual-item.highlight {
+    background: var(--accent-soft);
+    border-color: var(--accent);
+    color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+.visual-index {
+    display: block;
+    font-size: 10px;
+    color: var(--text-muted);
+    font-weight: 500;
+    margin-top: 4px;
+    font-family: var(--font-sans);
+}
+
+/* Linked List visuals */
+.node {
+    background: #ffffff;
+    border: 1.5px solid #cbd5e1;
+    border-radius: var(--radius-md);
+    padding: 10px 18px;
+    font-family: var(--font-mono);
+    font-weight: 600;
+    color: var(--text-primary);
+    box-shadow: 0 2px 4px rgba(15, 23, 42, 0.04);
+}
+
+.arrow {
+    color: var(--accent);
+    font-weight: 700;
+    font-size: 18px;
+}
+
+/* Stack visuals */
+.stack-visual {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    min-width: 200px;
+}
+
+.stack-item {
+    width: 100%;
+    max-width: 180px;
+    background: #ffffff;
+    border: 1.5px solid #cbd5e1;
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    text-align: center;
+    font-family: var(--font-mono);
+    font-weight: 600;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+/* Canvas Labels & Empty state */
+.diagram-label {
+    margin-top: 18px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-muted);
+    text-align: center;
+}
+
+.diagram-empty {
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+/* SVG styling */
+.structure-svg {
+    max-width: 100%;
+    height: auto;
+}
+
+.tree-edge, .graph-edge {
+    stroke: #94a3b8;
+    stroke-width: 2;
+    stroke-linecap: round;
+}
+
+.tree-circle, .graph-circle {
+    fill: #ffffff;
+    stroke: var(--text-primary);
+    stroke-width: 2;
+}
+
+.tree-circle.root {
+    fill: var(--accent-soft);
+    stroke: var(--accent);
+    stroke-width: 2.5;
+}
+
+.tree-value, .graph-value {
+    font-family: var(--font-mono);
+    fill: var(--text-primary);
+    font-size: 13px;
+    font-weight: 600;
+    text-anchor: middle;
+    dominant-baseline: central;
+}
+
+/* ==========================================================================
+   INTERACTIVE CONTROLS
+   ========================================================================== */
+.controls-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 14px;
+    margin-bottom: 16px;
+}
+
+.form-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.form-field label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.form-field input {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    padding: 10px 14px;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-sm);
+    background: #ffffff;
+    color: var(--text-primary);
+    outline: none;
+    transition: all 0.15s ease;
+}
+
+.form-field input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.action-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 9px 15px;
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+}
+
+.btn-primary {
+    background-color: var(--accent);
+    color: #ffffff;
+}
+
+.btn-primary:hover {
+    background-color: var(--accent-hover);
+}
+
+.btn-secondary {
+    background-color: #ffffff;
+    border-color: var(--border-strong);
+    color: var(--text-primary);
+}
+
+.btn-secondary:hover {
+    background-color: var(--bg-subtle);
+    border-color: #94a3b8;
+}
+
+/* Result Box */
+.terminal-result {
+    margin-top: 18px;
+    border-radius: var(--radius-md);
+    background: var(--bg-dark);
+    color: #e2e8f0;
+    border: 1px solid var(--border-dark);
+    overflow: hidden;
+    animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.terminal-header {
+    background: #131b2e;
+    padding: 8px 14px;
+    font-size: 11px;
+    font-weight: 600;
+    font-family: var(--font-mono);
+    color: #94a3b8;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #1e293b;
+}
+
+.terminal-dots {
+    display: flex;
+    gap: 5px;
+}
+
+.terminal-dots span {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #334155;
+}
+
+.terminal-body {
+    padding: 14px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    line-height: 1.6;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    word-break: break-all;
+}
+
+.terminal-result.error-state {
+    border-color: rgba(220, 38, 38, 0.4);
+}
+
+.terminal-result.error-state .terminal-header {
+    background: #200d11;
+    color: #f87171;
+}
+
+/* ==========================================================================
+   CODE BLOCK
+   ========================================================================== */
+.code-wrapper {
+    position: relative;
+    background: #090d16;
+    border: 1px solid var(--border-dark);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+}
+
+.code-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 16px;
+    background: #0f172a;
+    border-bottom: 1px solid #1e293b;
+}
+
+.code-lang {
+    font-size: 11px;
+    font-family: var(--font-mono);
+    color: #94a3b8;
+    text-transform: uppercase;
+}
+
+.copy-btn {
+    background: transparent;
+    border: 1px solid #334155;
+    color: #94a3b8;
+    font-size: 11px;
+    font-family: var(--font-sans);
+    padding: 3px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: 0.15s;
+}
+
+.copy-btn:hover {
+    color: #ffffff;
+    border-color: #64748b;
+}
+
+pre {
+    padding: 16px 20px;
+    margin: 0;
+    overflow-x: auto;
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    line-height: 1.7;
+    color: #e2e8f0;
+}
+
+/* ==========================================================================
+   RIGHT INSPECTOR PANEL
+   ========================================================================== */
+.inspector {
+    background: #ffffff;
+    border-left: 1px solid var(--border);
+    padding: 32px 24px;
+    overflow-y: auto;
+    height: 100vh;
+    position: sticky;
+    top: 0;
+}
+
+.inspector-title {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--text-muted);
+    margin-bottom: 20px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+}
+
+.spec-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.spec-badge {
+    background: var(--bg-subtle);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 10px 12px;
+}
+
+.spec-badge .label {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    display: block;
+    margin-bottom: 4px;
+}
+
+.spec-badge .val {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--accent);
+}
+
+.info-group {
+    margin-bottom: 20px;
+}
+
+.info-group h4 {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+}
+
+.info-group p {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+/* Footer note */
+.doc-footer {
+    padding: 24px 0 12px;
+    color: var(--text-muted);
+    font-size: 12px;
+    text-align: center;
+}
+
+/* ==========================================================================
+   RESPONSIVE BREAKPOINTS
+   ========================================================================== */
+@media (max-width: 1180px) {
+    .app-shell {
+        grid-template-columns: 240px minmax(0, 1fr);
+    }
+    .inspector {
+        grid-column: 2;
+        height: auto;
+        border-left: none;
+        border-top: 1px solid var(--border);
+        position: static;
+        padding: 32px 44px;
+    }
+}
+
+@media (max-width: 860px) {
+    .mobile-header {
+        display: flex;
+    }
+
+    .app-shell {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .sidebar {
+        position: fixed;
+        top: 49px;
+        left: -100%;
+        width: 280px;
+        height: calc(100vh - 49px);
+        z-index: 50;
+        transition: left 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        box-shadow: var(--shadow-md);
+    }
+
+    .sidebar.open {
+        left: 0;
+    }
+
+    .workspace {
+        padding: 24px 18px;
+    }
+
+    .inspector {
+        padding: 24px 18px;
+    }
+
+    .topic-title {
+        font-size: 24px;
+    }
+}
+    </style>
+</head>
+
+<body>
+
+    <!-- Mobile Navigation Topbar -->
+    <div class="mobile-header">
+        <div class="brand-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2.2">
+                <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                <polyline points="2 17 12 22 22 17"></polyline>
+                <polyline points="2 12 12 17 22 12"></polyline>
+            </svg>
+            DSA Workbench
+        </div>
+        <button class="menu-toggle-btn" onclick="toggleSidebar()">Modules Menu</button>
+    </div>
+
+<div class="app-shell">
+
+    <!-- LEFT NAVIGATION -->
+    <aside class="sidebar" id="sidebar">
+        <div class="brand">
+            <div class="brand-badge">Academic Engine</div>
+            <h1>DSA Workbench</h1>
+        </div>
+
+        <div class="nav-group-title">Data Structures</div>
+        <button class="nav-item active" onclick="showTopic('array', this)">01. Array <span class="nav-tag">arr</span></button>
+        <button class="nav-item" onclick="showTopic('stack', this)">02. Stack <span class="nav-tag">stk</span></button>
+        <button class="nav-item" onclick="showTopic('queue', this)">03. Queue <span class="nav-tag">que</span></button>
+        <button class="nav-item" onclick="showTopic('linked_list', this)">04. Linked List <span class="nav-tag">ll</span></button>
+        <button class="nav-item" onclick="showTopic('tree', this)">05. Trees <span class="nav-tag">bst</span></button>
+        <button class="nav-item" onclick="showTopic('graph', this)">06. Graphs <span class="nav-tag">grp</span></button>
+
+        <div class="nav-group-title">Algorithms</div>
+        <button class="nav-item" onclick="showTopic('bubble_sort', this)">07. Bubble Sort <span class="nav-tag">O(n²)</span></button>
+        <button class="nav-item" onclick="showTopic('quick_sort', this)">08. Quick Sort <span class="nav-tag">O(n log n)</span></button>
+        <button class="nav-item" onclick="showTopic('linear_search', this)">09. Linear Search <span class="nav-tag">O(n)</span></button>
+        <button class="nav-item" onclick="showTopic('binary_search', this)">10. Binary Search <span class="nav-tag">O(log n)</span></button>
+    </aside>
+
+    <!-- MAIN INTERACTIVE WORKSPACE -->
+    <main class="workspace">
+        <header class="workspace-header">
+            <div class="meta-breadcrumb">
+                Modules / <span id="breadcrumb">Array</span>
+            </div>
+            <h1 class="topic-title" id="topic-title">Array</h1>
+            <p class="topic-description" id="topic-description">
+                An array is a linear data structure that stores elements in contiguous memory locations.
+            </p>
+        </header>
+
+        <!-- Canvas Card -->
+        <section class="card">
+            <div class="card-header">
+                <span class="card-title">Live Memory Canvas</span>
+            </div>
+            <div class="card-body">
+                <div class="canvas-wrapper" id="diagram">
+                    <!-- Dynamic rendering inserted here -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Demonstration Card -->
+        <section class="card">
+            <div class="card-header">
+                <span class="card-title">Operations Console</span>
+            </div>
+            <div class="card-body">
+                <p id="demo-description" style="font-size: 13px; color: var(--text-secondary); margin-bottom: 16px;">
+                    Perform operations on the structure and inspect state changes in real time.
+                </p>
+
+                <div id="controls"></div>
+
+                <!-- Result Terminal -->
+                <div class="terminal-result" id="result-box" style="display:none;">
+                    <div class="terminal-header">
+                        <div class="terminal-dots">
+                            <span></span><span></span><span></span>
+                        </div>
+                        <span id="result-title">STATUS: OK</span>
+                    </div>
+                    <div class="terminal-body" id="result"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Concept Overview Card -->
+        <section class="card">
+            <div class="card-header">
+                <span class="card-title">Under The Hood</span>
+            </div>
+            <div class="card-body">
+                <p id="how-it-works" style="font-size: 13.5px; color: var(--text-secondary); line-height: 1.7; margin-bottom: 14px;"></p>
+                <p id="overview" style="font-size: 13.5px; color: var(--text-secondary); line-height: 1.7;"></p>
+            </div>
+        </section>
+
+        <!-- Python Reference Card -->
+        <section class="card">
+            <div class="card-header">
+                <span class="card-title">Implementation Blueprint</span>
+            </div>
+            <div class="card-body" style="padding: 0;">
+                <div class="code-wrapper">
+                    <div class="code-header">
+                        <span class="code-lang">Python 3.x</span>
+                        <button class="copy-btn" onclick="copyCode()">Copy snippet</button>
+                    </div>
+                    <pre><code id="python-code"></code></pre>
+                </div>
+            </div>
+        </section>
+
+        <div class="doc-footer">
+            Interactive Computer Science Playground &bull; Ready for API Integration
+        </div>
+    </main>
+
+    <!-- RIGHT INSPECTOR PANEL -->
+    <aside class="inspector">
+        <h3 class="inspector-title">Telemetry & Specs</h3>
+
+        <div class="spec-grid">
+            <div class="spec-badge">
+                <span class="label">Time</span>
+                <span class="val" id="time-complexity">O(1)</span>
+            </div>
+            <div class="spec-badge">
+                <span class="label">Space</span>
+                <span class="val" id="space-complexity">O(n)</span>
+            </div>
+        </div>
+
+        <div class="info-group">
+            <h4>Memory Layout & Properties</h4>
+            <p id="properties">Linear structure, indexed access.</p>
+        </div>
+
+        <div class="info-group">
+            <h4>Trade-offs & Advantages</h4>
+            <p id="advantages">Fast direct access using indexes.</p>
+        </div>
+
+        <div class="info-group">
+            <h4>Implementation Note</h4>
+            <p id="key-facts">Zero-indexed in standard modern runtimes.</p>
+        </div>
+
+        <div class="info-group">
+            <h4>Industrial Applications</h4>
+            <p id="applications">Data buffers, lookup tables, low-level memory allocation.</p>
+        </div>
+    </aside>
+
+</div>
+
+<script>
+    // TOPIC INFORMATION
+    const topics = {
+        array: {
+            title: "Array",
+            description: "An array is a linear data structure that stores elements in an ordered, contiguous block of memory.",
+            overview: "Each element is mapped to a numeric index. In high-level languages like Python, dynamic arrays (lists) provide dynamic resizing over fixed primitive buffers.",
+            how: "Access is instantaneous through memory address offset calculations: base_address + (index * element_size). Modifying middle positions requires shifting subsequent elements.",
+            applications: "Buffers, lookup tables, matrix math, foundation for strings and heaps.",
+            time: "Access: O(1) | Search: O(n) | Insert/Delete: O(n)",
+            space: "O(n)",
+            properties: "Contiguous, indexed, fixed or dynamic allocation.",
+            advantages: "Instant O(1) random access, minimal pointer overhead.",
+            facts: "Zero-indexed: index 0 denotes 0 elements distance from base address.",
+            code: `class Array:
+    def __init__(self):
+        self.data = []
+
+    def insert(self, value, index):
+        self.data.insert(index, value)
+
+    def delete(self, index):
+        return self.data.pop(index)
+
+    def access(self, index):
+        return self.data[index]
+
+    def update(self, index, value):
+        self.data[index] = value`,
+            demo: "Insert, delete, access, and update indexed memory cells."
+        },
+
+        stack: {
+            title: "Stack",
+            description: "A linear data structure constrained by the Last In, First Out (LIFO) protocol.",
+            overview: "Items are pushed and popped exclusively from one boundary called the top.",
+            how: "Stack pointers move forward on push and backward on pop. There is no indexed arbitrary access.",
+            applications: "Call-stack execution, undo mechanisms, DFS graph traversal, syntax parsing.",
+            time: "Push: O(1) | Pop: O(1) | Peek: O(1)",
+            space: "O(n)",
+            properties: "Strict LIFO order, single insertion/deletion point.",
+            advantages: "Predictable O(1) runtime with minimal memory bookkeeping.",
+            facts: "Hardware call stacks track subroutine jumps and variable scopes.",
+            code: `class Stack:
+    def __init__(self):
+        self.items = []
+
+    def push(self, value):
+        self.items.append(value)
+
+    def pop(self):
+        if not self.items:
+            return "Stack Underflow"
+        return self.items.pop()
+
+    def peek(self):
+        return self.items[-1] if self.items else "Empty"`,
+            demo: "Push items onto the stack top or pop the most recent element."
+        },
+
+        queue: {
+            title: "Queue",
+            description: "A linear structure operating strictly on the First In, First Out (FIFO) protocol.",
+            overview: "Elements enter at the rear (enqueue) and vacate at the front (dequeue).",
+            how: "Maintains head and tail markers to guarantee equitable arrival order processing.",
+            applications: "CPU scheduling, print queues, buffering asynchronous network packets, BFS algorithms.",
+            time: "Enqueue: O(1) | Dequeue: O(n) [O(1) with deque]",
+            space: "O(n)",
+            properties: "Strict FIFO, dual-end interaction.",
+            advantages: "Prevents starvation by processing tasks in arrival sequence.",
+            facts: "Circular buffers eliminate O(n) element shifting during dequeue.",
+            code: `class Queue:
+    def __init__(self):
+        self.items = []
+
+    def enqueue(self, value):
+        self.items.append(value)
+
+    def dequeue(self):
+        if not self.items:
+            return "Queue Underflow"
+        return self.items.pop(0)
+
+    def front(self):
+        return self.items[0] if self.items else "Empty"`,
+            demo: "Enqueue incoming values at the rear or dequeue from the front."
+        },
+
+        linked_list: {
+            title: "Linked List",
+            description: "A sequence of disjoint heap-allocated node structures connected via pointer references.",
+            overview: "Unlike arrays, elements are not contiguous in memory; each node points to its successor.",
+            how: "Insertion and deletion at known reference pointers is instantaneous O(1) because only reference pointers are reassigned.",
+            applications: "OS memory fragmentation handling, undo histories, graph adjacency lists.",
+            time: "Head Insert: O(1) | Search: O(n) | Random Access: O(n)",
+            space: "O(n) with pointer overhead",
+            properties: "Non-contiguous heap allocation, unidirectional pointers.",
+            advantages: "No preallocated capacity limits; zero reallocation re-copy overhead.",
+            facts: "Cache performance is poorer than arrays due to scattered memory locations.",
+            code: `class Node:
+    def __init__(self, data):
+        self.data = data
+        self.next = None
+
+class LinkedList:
+    def __init__(self):
+        self.head = None
+
+    def insert_beginning(self, value):
+        new_node = Node(value)
+        new_node.next = self.head
+        self.head = new_node
+
+    def insert(self, value):
+        new_node = Node(value)
+        if not self.head:
+            self.head = new_node
+            return
+        curr = self.head
+        while curr.next:
+            curr = curr.next
+        curr.next = new_node`,
+            demo: "Dynamically allocate nodes, re-link pointers, or search the chain."
+        },
+
+        tree: {
+            title: "Binary Search Tree",
+            description: "A hierarchical node network where each node has at most two children adhering to BST invariant.",
+            overview: "All left subtree keys are smaller than parent key; all right keys are larger.",
+            how: "Comparisons at each node prune impossible branches, yielding logarithmic search times in balanced trees.",
+            applications: "Database index generation, B-Trees in storage engines, hierarchical routing.",
+            time: "Search/Insert: Avg O(log n), Worst O(n)",
+            space: "O(n)",
+            properties: "Hierarchical, recursive subtrees, single root.",
+            advantages: "Sorted order can be retrieved in linear time via Inorder traversal.",
+            facts: "Degenerates to a linked list if inserted values arrive pre-sorted without balancing.",
+            code: `def inorder(root):
+    # Left -> Root -> Right (produces sorted order)
+    return inorder(root.left) + [root.val] + inorder(root.right) if root else []
+
+def bfs(root):
+    if not root: return []
+    res, queue = [], [root]
+    while queue:
+        node = queue.pop(0)
+        res.append(node.val)
+        if node.left: queue.append(node.left)
+        if node.right: queue.append(node.right)
+    return res`,
+            demo: "Construct a dynamic BST and run DFS/BFS traversal routines."
+        },
+
+        graph: {
+            title: "Graph",
+            description: "A generalized network consisting of arbitrary vertices connected through edges.",
+            overview: "Models complex, non-hierarchical interconnected topologies like social graphs or road systems.",
+            how: "Traversals track visited nodes via hash sets to avoid infinite cycles in cyclic topologies.",
+            applications: "Social webs, shortest-path GPS routing (Dijkstra), dependency resolution.",
+            time: "DFS / BFS: O(V + E)",
+            space: "O(V + E) with Adjacency List",
+            properties: "Non-linear, cyclic/acyclic, directed or undirected.",
+            advantages: "Can model arbitrary pairwise relationships in real-world systems.",
+            facts: "Trees are simply connected acyclic undirected graphs.",
+            code: `class Graph:
+    def __init__(self):
+        self.adj = {}
+
+    def add_edge(self, u, v):
+        self.adj.setdefault(u, []).append(v)
+        self.adj.setdefault(v, []).append(u)
+
+    def bfs(self, start):
+        visited, queue = [start], [start]
+        while queue:
+            node = queue.pop(0)
+            for neighbor in self.adj.get(node, []):
+                if neighbor not in visited:
+                    visited.append(neighbor)
+                    queue.append(neighbor)
+        return visited`,
+            demo: "Declare vertex edge connections and initiate exploratory search."
+        },
+
+        bubble_sort: {
+            title: "Bubble Sort",
+            description: "A comparison sort that scans and swaps adjacent out-of-order elements.",
+            overview: "Heavier values iteratively bubble to the end of the array after successive sweeps.",
+            how: "Runs n passes. In each pass, compares index i with i+1, swapping if left > right.",
+            applications: "Small scale pedagogical demos, nearly-sorted checks with early exit.",
+            time: "Best: O(n) | Avg: O(n²) | Worst: O(n²)",
+            space: "O(1) Auxiliary",
+            properties: "Stable, in-place, comparison-based.",
+            advantages: "Very low implementation complexity; requires no extra memory.",
+            facts: "The early-break flag allows it to complete in O(n) on pre-sorted data.",
+            code: `def bubble_sort(arr):
+    n = len(arr)
+    for i in range(n):
+        swapped = False
+        for j in range(0, n - i - 1):
+            if arr[j] > arr[j + 1]:
+                arr[j], arr[j + 1] = arr[j + 1], arr[j]
+                swapped = True
+        if not swapped:
+            break
+    return arr`,
+            demo: "Sort comma-separated numbers through iterative adjacent bubble exchanges."
+        },
+
+        quick_sort: {
+            title: "Quick Sort",
+            description: "Divide-and-conquer sorting algorithm based on pivot partitioning.",
+            overview: "Picks a pivot element and organizes items into buckets smaller and greater than pivot.",
+            how: "Recursively partitions sub-arrays until base cases (length <= 1) are hit.",
+            applications: "C qsort, language standard libraries, general high-performance sorting.",
+            time: "Best/Avg: O(n log n) | Worst: O(n²)",
+            space: "O(log n) stack space",
+            properties: "Divide & Conquer, usually implemented as unstable.",
+            advantages: "Exceptional real-world performance due to cache-friendly locality.",
+            facts: "Selecting the median of three elements avoids the O(n²) worst-case on sorted lists.",
+            code: `def quick_sort(arr):
+    if len(arr) <= 1:
+        return arr
+    pivot = arr[-1]
+    left = [x for x in arr[:-1] if x <= pivot]
+    right = [x for x in arr[:-1] if x > pivot]
+    return quick_sort(left) + [pivot] + quick_sort(right)`,
+            demo: "Partition and sort lists using recursive pivot segmentation."
+        },
+
+        linear_search: {
+            title: "Linear Search",
+            description: "A baseline search algorithm that verifies items sequentially from start to end.",
+            overview: "Does not require input arrays to be ordered or indexed.",
+            how: "Scans index 0, then 1, up to n-1, returning index immediately upon equality match.",
+            applications: "Unsorted collections, small arrays (<50 items), linked list scans.",
+            time: "Best: O(1) | Avg: O(n) | Worst: O(n)",
+            space: "O(1)",
+            properties: "Sequential, operates on unsorted arrays.",
+            advantages: "Requires zero preprocessing, zero sorting overhead.",
+            facts: "Optimal search method for completely unordered datasets.",
+            code: `def linear_search(arr, target):
+    for i in range(len(arr)):
+        if arr[i] == target:
+            return i
+    return -1`,
+            demo: "Sequentially scan an array for a target value."
+        },
+
+        binary_search: {
+            title: "Binary Search",
+            description: "Logarithmic interval-halving search operating exclusively on sorted collections.",
+            overview: "Inspects the median value; discards the impossible half on each cycle.",
+            how: "Maintains pointers (low, high). Middle is recalculated: mid = (low + high) // 2.",
+            applications: "Database index searches, git bisect, numeric root finding.",
+            time: "Best: O(1) | Avg: O(log n) | Worst: O(log n)",
+            space: "O(1) Iterative",
+            properties: "Logarithmic, demands sorted array preconditions.",
+            advantages: "Can search 4 billion records in roughly 32 comparisons.",
+            facts: "Repeated division by 2 is the inverse of binary exponentiation.",
+            code: `def binary_search(arr, target):
+    low, high = 0, len(arr) - 1
+    while low <= high:
+        mid = (low + high) // 2
+        if arr[mid] == target:
+            return mid
+        elif arr[mid] < target:
+            low = mid + 1
+        else:
+            high = mid - 1
+    return -1`,
+            demo: "Halve intervals to find values in sorted lists."
+        }
+    };
+
+    let currentTopic = "array";
+
+    function toggleSidebar() {
+        document.getElementById("sidebar").classList.toggle("open");
+    }
+
+    function showTopic(topic, button) {
+        currentTopic = topic;
+        const info = topics[topic];
+
+        // Close sidebar on mobile once clicked
+        document.getElementById("sidebar").classList.remove("open");
+
+        document.getElementById("topic-title").textContent = info.title;
+        document.getElementById("topic-description").textContent = info.description;
+        document.getElementById("breadcrumb").textContent = info.title;
+
+        document.getElementById("overview").textContent = info.overview;
+        document.getElementById("how-it-works").textContent = info.how;
+        document.getElementById("applications").textContent = info.applications;
+
+        document.getElementById("time-complexity").textContent = info.time;
+        document.getElementById("space-complexity").textContent = info.space;
+        document.getElementById("properties").textContent = info.properties;
+        document.getElementById("advantages").textContent = info.advantages;
+        document.getElementById("key-facts").textContent = info.facts;
+
+        document.getElementById("python-code").textContent = info.code;
+        document.getElementById("demo-description").textContent = info.demo;
+
+        document.getElementById("result-box").style.display = "none";
+
+        document.querySelectorAll(".nav-item").forEach(item => item.classList.remove("active"));
+        if (button) button.classList.add("active");
+
+        renderControls(topic);
+        renderDiagram(topic);
+    }
+
+    function copyCode() {
+        const code = document.getElementById("python-code").innerText;
+        navigator.clipboard.writeText(code).then(() => {
+            const btn = document.querySelector(".copy-btn");
+            btn.textContent = "Copied!";
+            setTimeout(() => btn.textContent = "Copy snippet", 1800);
+        });
+    }
+
+    function renderControls(topic) {
+        const controls = document.getElementById("controls");
+        let html = "";
+
+        if (topic === "array") {
+            html = `
+                <div class="controls-grid">
+                    <div class="form-field">
+                        <label>Value</label>
+                        <input type="number" id="value" placeholder="e.g. 42">
+                    </div>
+                    <div class="form-field">
+                        <label>Index Position</label>
+                        <input type="number" id="index" placeholder="e.g. 0">
+                    </div>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn btn-primary" onclick="runOperation('insert')">Insert</button>
+                    <button class="btn btn-secondary" onclick="runOperation('delete')">Delete</button>
+                    <button class="btn btn-secondary" onclick="runOperation('access')">Access</button>
+                    <button class="btn btn-secondary" onclick="runOperation('update')">Update</button>
+                    <button class="btn btn-secondary" onclick="runOperation('display')">Refresh</button>
+                </div>
+            `;
+        } else if (topic === "stack") {
+            html = `
+                <div class="controls-grid">
+                    <div class="form-field">
+                        <label>Push Value</label>
+                        <input type="number" id="value" placeholder="e.g. 88">
+                    </div>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn btn-primary" onclick="runOperation('push')">Push</button>
+                    <button class="btn btn-secondary" onclick="runOperation('pop')">Pop</button>
+                    <button class="btn btn-secondary" onclick="runOperation('peek')">Peek</button>
+                    <button class="btn btn-secondary" onclick="runOperation('display')">View Stack</button>
+                </div>
+            `;
+        } else if (topic === "queue") {
+            html = `
+                <div class="controls-grid">
+                    <div class="form-field">
+                        <label>Enqueue Value</label>
+                        <input type="number" id="value" placeholder="e.g. 15">
+                    </div>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn btn-primary" onclick="runOperation('enqueue')">Enqueue</button>
+                    <button class="btn btn-secondary" onclick="runOperation('dequeue')">Dequeue</button>
+                    <button class="btn btn-secondary" onclick="runOperation('front')">Front</button>
+                    <button class="btn btn-secondary" onclick="runOperation('display')">View Queue</button>
+                </div>
+            `;
+        } else if (topic === "linked_list") {
+            html = `
+                <div class="controls-grid">
+                    <div class="form-field">
+                        <label>Node Value</label>
+                        <input type="number" id="value" placeholder="Value">
+                    </div>
+                    <div class="form-field">
+                        <label>Search Target</label>
+                        <input type="number" id="target" placeholder="Target">
+                    </div>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn btn-primary" onclick="runOperation('insert')">Insert Tail</button>
+                    <button class="btn btn-primary" onclick="runOperation('insert_beginning')">Insert Head</button>
+                    <button class="btn btn-secondary" onclick="runOperation('delete')">Delete Value</button>
+                    <button class="btn btn-secondary" onclick="runOperation('search')">Search</button>
+                    <button class="btn btn-secondary" onclick="runOperation('display')">Traverse</button>
+                </div>
+            `;
+        } else if (topic === "tree") {
+            html = `
+                <div class="controls-grid">
+                    <div class="form-field" style="grid-column: 1 / -1;">
+                        <label>Tree Seed Values (comma-separated)</label>
+                        <input type="text" id="values" value="50,30,70,20,40,60,80">
+                    </div>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn btn-primary" onclick="runOperation('build')">Build Tree</button>
+                    <button class="btn btn-secondary" onclick="runOperation('inorder')">Inorder</button>
+                    <button class="btn btn-secondary" onclick="runOperation('preorder')">Preorder</button>
+                    <button class="btn btn-secondary" onclick="runOperation('postorder')">Postorder</button>
+                    <button class="btn btn-secondary" onclick="runOperation('bfs')">BFS Level-Order</button>
+                </div>
+            `;
+        } else if (topic === "graph") {
+            html = `
+                <div class="controls-grid">
+                    <div class="form-field">
+                        <label>Edges List (Format: u-v,x-y)</label>
+                        <input type="text" id="edges" value="A-B,A-C,B-D,C-E">
+                    </div>
+                    <div class="form-field">
+                        <label>Start Node</label>
+                        <input type="text" id="start" value="A">
+                    </div>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn btn-primary" onclick="runOperation('build')">Construct Graph</button>
+                    <button class="btn btn-secondary" onclick="runOperation('dfs')">DFS Traversal</button>
+                    <button class="btn btn-secondary" onclick="runOperation('bfs')">BFS Traversal</button>
+                    <button class="btn btn-secondary" onclick="runOperation('display')">View Matrix</button>
+                </div>
+            `;
+        } else {
+            const isSearch = topic.includes("search");
+            html = `
+                <div class="controls-grid">
+                    <div class="form-field" style="grid-column: 1 / -1;">
+                        <label>Dataset (comma-separated)</label>
+                        <input type="text" id="values" value="${isSearch && topic === 'binary_search' ? '11,12,22,25,34,64,90' : '64,34,25,12,22,11,90'}">
+                    </div>
+                    ${isSearch ? `
+                    <div class="form-field">
+                        <label>Target Value</label>
+                        <input type="number" id="target" value="25">
+                    </div>` : ''}
+                </div>
+                <div class="action-buttons">
+                    <button class="btn btn-primary" onclick="runOperation('${isSearch ? 'search' : 'sort'}')">
+                        ${isSearch ? 'Execute Search' : 'Execute Sort'}
+                    </button>
+                </div>
+            `;
+        }
+        controls.innerHTML = html;
+    }
+
+    function drawTree(values) {
+        const diagram = document.getElementById("diagram");
+        if (!values || values.length === 0) {
+            diagram.innerHTML = '<div class="diagram-empty">Specify integer values above and click "Build Tree"</div>';
+            return;
+        }
+
+        const root = { value: values[0], left: null, right: null };
+        function insert(node, val) {
+            if (val < node.value) {
+                if (!node.left) node.left = { value: val, left: null, right: null };
+                else insert(node.left, val);
+            } else {
+                if (!node.right) node.right = { value: val, left: null, right: null };
+                else insert(node.right, val);
+            }
+        }
+        values.slice(1).forEach(v => insert(root, v));
+
+        const nodes = [];
+        const edges = [];
+        let pos = 0;
+        let maxD = 0;
+
+        function traverse(node, depth) {
+            if (!node) return;
+            maxD = Math.max(maxD, depth);
+            traverse(node.left, depth + 1);
+            node.xIndex = pos++;
+            node.depth = depth;
+            nodes.push(node);
+            traverse(node.right, depth + 1);
+
+            if (node.left) edges.push([node, node.left]);
+            if (node.right) edges.push([node, node.right]);
+        }
+        traverse(root, 0);
+
+        const width = Math.max(500, nodes.length * 75);
+        const height = Math.max(180, (maxD + 1) * 80 + 30);
+        const margin = 40;
+        const usableWidth = width - margin * 2;
+
+        nodes.forEach(n => {
+            n.x = nodes.length === 1 ? width / 2 : margin + (n.xIndex / (nodes.length - 1)) * usableWidth;
+            n.y = 35 + n.depth * 75;
+        });
+
+        const edgeMarkup = edges.map(([p, c]) =>
+            `<line class="tree-edge" x1="${p.x}" y1="${p.y + 16}" x2="${c.x}" y2="${c.y - 16}"></line>`
+        ).join("");
+
+        const nodeMarkup = nodes.map(n => `
+            <g>
+                <circle class="tree-circle ${n === root ? 'root' : ''}" cx="${n.x}" cy="${n.y}" r="17"></circle>
+                <text class="tree-value" x="${n.x}" y="${n.y}">${n.value}</text>
+            </g>
+        `).join("");
+
+        diagram.innerHTML = `
+            <svg class="structure-svg" viewBox="0 0 ${width} ${height}">
+                ${edgeMarkup}
+                ${nodeMarkup}
+            </svg>
+            <div class="diagram-label">Binary Search Tree generated via Inorder placement</div>
+        `;
+    }
+
+    function drawGraph(edges) {
+        const diagram = document.getElementById("diagram");
+        if (!edges || edges.length === 0) {
+            diagram.innerHTML = '<div class="diagram-empty">Configure graph edge relationships to render visual graph.</div>';
+            return;
+        }
+
+        const vertices = [];
+        edges.forEach(e => e.forEach(v => {
+            if (!vertices.includes(v)) vertices.push(v);
+        }));
+
+        const width = 500;
+        const height = 280;
+        const cX = width / 2;
+        const cY = height / 2;
+        const radius = Math.min(100, 35 + vertices.length * 12);
+        const positions = {};
+
+        vertices.forEach((v, i) => {
+            const angle = (2 * Math.PI * i / vertices.length) - Math.PI / 2;
+            positions[v] = {
+                x: cX + radius * Math.cos(angle),
+                y: cY + radius * Math.sin(angle)
+            };
+        });
+
+        const edgeMarkup = edges.map(([from, to]) => {
+            const a = positions[from];
+            const b = positions[to];
+            return a && b ? `<line class="graph-edge" x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}"></line>` : '';
+        }).join("");
+
+        const nodeMarkup = vertices.map(v => {
+            const pt = positions[v];
+            return `
+                <g>
+                    <circle class="graph-circle" cx="${pt.x}" cy="${pt.y}" r="18"></circle>
+                    <text class="graph-value" x="${pt.x}" y="${pt.y}">${v}</text>
+                </g>
+            `;
+        }).join("");
+
+        diagram.innerHTML = `
+            <svg class="structure-svg" viewBox="0 0 ${width} ${height}">
+                ${edgeMarkup}
+                ${nodeMarkup}
+            </svg>
+            <div class="diagram-label">Graph Network Visualization</div>
+        `;
+    }
+
+    function renderDiagram(topic) {
+        const diagram = document.getElementById("diagram");
+        const previews = {
+            array: `
+                <div class="visual-row">
+                    ${[10, 20, 30, 40].map((n, i) => `
+                        <div class="visual-item ${i === 2 ? 'highlight' : ''}">
+                            ${n}<span class="visual-index">idx ${i}</span>
+                        </div>
+                    `).join("")}
+                </div>
+                <div class="diagram-label">Contiguous array items with zero-based index offsets.</div>
+            `,
+            stack: `
+                <div class="stack-visual">
+                    <span style="font-size: 11px; font-weight: 700; color: var(--accent);">[TOP POINTER]</span>
+                    ${[30, 20, 10].map(n => `<div class="stack-item">${n}</div>`).join("")}
+                    <span style="font-size: 11px; color: var(--text-muted);">[BASE]</span>
+                </div>
+                <div class="diagram-label">Last-In, First-Out (LIFO) stack sequence.</div>
+            `,
+            queue: `
+                <div class="visual-row">
+                    <span style="font-size: 11px; font-weight:700; color: var(--accent);">OUT &larr;</span>
+                    ${[10, 20, 30, 40].map((n) => `<div class="visual-item">${n}</div>`).join("")}
+                    <span style="font-size: 11px; font-weight:700; color: var(--text-muted);">&larr; IN</span>
+                </div>
+                <div class="diagram-label">First-In, First-Out (FIFO) queue pipeline.</div>
+            `,
+            linked_list: `
+                <div class="visual-row">
+                    ${[10, 20, 30].map(n => `<div class="node">${n}</div><span class="arrow">&rarr;</span>`).join("")}
+                    <div class="node" style="color:var(--text-muted);">null</div>
+                </div>
+                <div class="diagram-label">Chain of heap nodes connected via next references.</div>
+            `,
+            bubble_sort: `
+                <div class="visual-row">${[64, 34, 25, 12, 22].map(n => `<div class="visual-item">${n}</div>`).join("")}</div>
+                <div class="diagram-label">Consecutive pairs compare and iteratively swap position.</div>
+            `,
+            quick_sort: `
+                <div class="visual-row">${[10, 7, 8, 9, 1, 5].map(n => `<div class="visual-item ${n === 5 ? 'highlight' : ''}">${n}</div>`).join("")}</div>
+                <div class="diagram-label">The highlighted boundary acts as the partition pivot.</div>
+            `,
+            linear_search: `
+                <div class="visual-row">${[10, 25, 30, 45, 50].map((n, i) => `<div class="visual-item ${i === 2 ? 'highlight' : ''}">${n}</div>`).join("")}</div>
+                <div class="diagram-label">Pointer increments linearly checking value equality.</div>
+            `,
+            binary_search: `
+                <div class="visual-row">${[10, 20, 30, 40, 50, 60, 70].map((n, i) => `<div class="visual-item ${i === 3 ? 'highlight' : ''}">${n}</div>`).join("")}</div>
+                <div class="diagram-label">Midpoint partitioned; halves pruned logarithmically.</div>
+            `
+        };
+
+        if (topic === "tree") {
+            const input = document.getElementById("values");
+            drawTree(input ? input.value.split(",").map(v => Number(v.trim())).filter(Number.isFinite) : [50, 30, 70, 20, 40, 60, 80]);
+        } else if (topic === "graph") {
+            const input = document.getElementById("edges");
+            const edges = input ? input.value.split(",").map(e => e.trim().split("-").map(p => p.trim())).filter(p => p.length === 2) : [["A","B"],["A","C"],["B","D"],["C","E"]];
+            drawGraph(edges);
+        } else {
+            diagram.innerHTML = previews[topic] || "";
+        }
+    }
+
+    function getNumbers() {
+        const field = document.getElementById("values");
+        if (!field || field.value.trim() === "") throw new Error("Dataset input is empty.");
+        return field.value.split(",").map(v => {
+            const n = Number(v.trim());
+            if (!Number.isFinite(n)) throw new Error("Ensure all values are valid numbers separated by commas.");
+            return n;
+        });
+    }
+
+    async function runOperation(operation) {
+        const data = { topic: currentTopic, operation: operation };
+
+        try {
+            if (["array", "stack", "queue", "linked_list"].includes(currentTopic)) {
+                const val = document.getElementById("value");
+                const idx = document.getElementById("index");
+                const tgt = document.getElementById("target");
+
+                if (val && val.value.trim() !== "") data.value = Number(val.value);
+                if (idx && idx.value.trim() !== "") data.index = Number(idx.value);
+                if (tgt && tgt.value.trim() !== "") data.target = Number(tgt.value);
+
+                if (["insert", "push", "enqueue", "insert_beginning", "update"].includes(operation) && data.value === undefined) {
+                    throw new Error("Target input value cannot be empty.");
+                }
+                if (["delete", "access", "update"].includes(operation) && data.index === undefined && currentTopic === "array") {
+                    throw new Error("Index field is required for this array operation.");
+                }
+                if (operation === "delete" && data.value === undefined && currentTopic === "linked_list") {
+                    throw new Error("Enter node value to delete.");
+                }
+                if (operation === "search" && data.target === undefined) {
+                    throw new Error("Please specify search target.");
+                }
+            } else if (currentTopic === "tree") {
+                if (operation === "build") data.values = getNumbers();
+            } else if (currentTopic === "graph") {
+                if (operation === "build") {
+                    const edgeStr = document.getElementById("edges").value;
+                    if (!edgeStr.trim()) throw new Error("Enter at least one edge (e.g., A-B).");
+                    data.edges = edgeStr.split(",").map(e => {
+                        const parts = e.trim().split("-");
+                        if (parts.length !== 2 || !parts[0] || !parts[1]) throw new Error("Edges format should be A-B,C-D");
+                        return parts.map(p => p.trim());
+                    });
+                }
+                const start = document.getElementById("start");
+                if (start) data.start = start.value.trim();
+            } else {
+                data.values = getNumbers();
+                if (currentTopic.includes("search")) {
+                    const tgt = document.getElementById("target");
+                    if (!tgt || tgt.value.trim() === "") throw new Error("Please designate search target.");
+                    data.target = Number(tgt.value);
+
+                    if (currentTopic === "binary_search" && data.values.some((v, i, a) => i > 0 && v < a[i - 1])) {
+                        throw new Error("Binary Search precondition violated: values must be in ascending sorted order.");
+                    }
+                }
+            }
+
+            const response = await fetch("/run", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(data)
+            });
+
+            const res = await response.json();
+            if (!response.ok || !res.success) {
+                throw new Error(res.message || "Operation failed on execution server.");
+            }
+
+            displayResult(res.result, operation);
+
+            if (currentTopic === "tree" && operation === "build") drawTree(data.values);
+            if (currentTopic === "graph" && operation === "build") drawGraph(data.edges);
+
+            if (["array", "stack", "queue", "linked_list"].includes(currentTopic)) {
+                const refresh = await fetch("/run", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ topic: currentTopic, operation: "display" })
+                });
+                const refreshData = await refresh.json();
+                if (refresh.ok && refreshData.success && Array.isArray(refreshData.result)) {
+                    renderDataStructure(refreshData.result);
+                }
+            }
+        } catch (err) {
+            displayError(err.message);
+        }
+    }
+
+    function displayResult(result, operation) {
+        const box = document.getElementById("result-box");
+        const title = document.getElementById("result-title");
+        const content = document.getElementById("result");
+
+        box.style.display = "block";
+        box.classList.remove("error-state");
+        title.textContent = `SUCCESS: [${operation.toUpperCase()}]`;
+
+        if (typeof result === "object" && result !== null) {
+            content.textContent = JSON.stringify(result, null, 2);
+        } else if (currentTopic.includes("search") || operation === "search") {
+            content.textContent = result === -1 ? "Status: Item Not Found" : `Success: Target discovered at index [${result}]`;
+        } else {
+            content.textContent = String(result);
+        }
+    }
+
+    function displayError(msg) {
+        const box = document.getElementById("result-box");
+        box.style.display = "block";
+        box.classList.add("error-state");
+        document.getElementById("result-title").textContent = "EXCEPTION THROWN";
+        document.getElementById("result").textContent = msg;
+    }
+
+    function renderDataStructure(values) {
+        const diagram = document.getElementById("diagram");
+
+        if (currentTopic === "array") {
+            diagram.innerHTML = `
+                <div class="visual-row">
+                    ${values.length ? values.map((n, i) => `
+                        <div class="visual-item">
+                            ${n}<span class="visual-index">idx ${i}</span>
+                        </div>
+                    `).join("") : '<div class="diagram-empty">Array is empty.</div>'}
+                </div>
+                <div class="diagram-label">Active state in memory</div>
+            `;
+        } else if (currentTopic === "stack") {
+            diagram.innerHTML = `
+                <div class="stack-visual">
+                    <span style="font-size: 11px; font-weight: 700; color: var(--accent);">[TOP]</span>
+                    ${values.length ? [...values].reverse().map(n => `<div class="stack-item">${n}</div>`).join("") : '<div class="diagram-empty">Stack empty.</div>'}
+                    <span style="font-size: 11px; color: var(--text-muted);">[BASE]</span>
+                </div>
+            `;
+        } else if (currentTopic === "queue") {
+            diagram.innerHTML = `
+                <div class="visual-row">
+                    <span style="font-size: 11px; font-weight: 700; color: var(--accent);">FRONT &rarr;</span>
+                    ${values.length ? values.map(n => `<div class="visual-item">${n}</div>`).join("") : '<div class="diagram-empty">Queue empty.</div>'}
+                    <span style="font-size: 11px; color: var(--text-muted);">&larr; REAR</span>
+                </div>
+            `;
+        } else if (currentTopic === "linked_list") {
+            diagram.innerHTML = `
+                <div class="visual-row">
+                    ${values.length ? values.map(n => `<div class="node">${n}</div><span class="arrow">&rarr;</span>`).join("") + '<div class="node" style="color:var(--text-muted);">null</div>' : '<div class="diagram-empty">List empty.</div>'}
+                </div>
+            `;
+        }
+    }
+
+    // Initialize initial view
+    showTopic("array", document.querySelector(".nav-item"));
+</script>
+
+</body>
+</html>
